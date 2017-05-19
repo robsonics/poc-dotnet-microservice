@@ -4,6 +4,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' 
 
+ASP_PORT=5000
+ASP_VERSION=1
+
 # $1 message to print
 function print_msg (){
 	echo -e "[#] $1"
@@ -11,7 +14,7 @@ function print_msg (){
 
 # $1 container ID/name
 function check_pull_image (){
-	if docker images | grep $1 | wc -c > 1; then
+	if docker images | grep $1 | wc -c -gt 1; then
 		echo -e "[#] $1 image ${GREEN}OK${NC}"
 	else
 		echo "[#] Pulling $1 image"
@@ -24,6 +27,12 @@ function check_pull_image (){
 function get_container_ip(){
 	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $1
 }
+
+function publish_asp(){
+
+}
+
+
 
 
 print_msg "Welcome in docker heaven"

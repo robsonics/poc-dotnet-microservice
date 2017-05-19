@@ -22,12 +22,12 @@ namespace WebApplication1
     {
         public Startup(IHostingEnvironment env)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            //var builder = new ConfigurationBuilder()
+            //    .SetBasePath(env.ContentRootPath)
+            //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            //    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+            //    .AddEnvironmentVariables();
+            //Configuration = builder.Build();
 
             //var configurationSvc = new ConfigurationReader();
         }
@@ -121,6 +121,23 @@ namespace WebApplication1
             app.UseHangfireServer();
             app.UseHangfireDashboard();
             app.UseMvc();
+
+            RegisterInConsul();
+
+        }
+
+        private void RegisterInConsul()
+        {
+            using (var client = new ConsulClient(conf => { conf.Address = new Uri(@"http://172.17.0.2:8500"); }))// TODO should replace with array of address read from 
+            {
+                var req = new AgentServiceRegistration() {
+                    Address ="",
+                    Name ="",
+                    Port=80,
+                    
+                };
+                client.Agent.ServiceRegister(req).GetAwaiter().GetResult();
+            }
         }
     }
 }

@@ -4,11 +4,6 @@
     "tags": [ "primary" ],
     "address": "",
     "port": 80,
-    "enableTagOverride": false,
-    //"checks": [
-    //  {
-    //    "script": "/usr/local/bin/check_redis.py",
-    //    "interval": "10s"
-    //  }
-    //]
+    "enableTagOverride": false
   }
+}

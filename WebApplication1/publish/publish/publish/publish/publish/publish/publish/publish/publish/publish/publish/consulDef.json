@@ -2,7 +2,7 @@
   "service": {
     "name": "web",
     "tags": [ "primary" ],
-    "address": "",
+    "address": "172.17.0.6",
     "port": 80,
     "enableTagOverride": false
   }
