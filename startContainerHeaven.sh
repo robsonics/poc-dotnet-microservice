@@ -54,7 +54,8 @@ function build_asp(){
 
 function publish_asp(){	
 	((ASP_CNT=ASP_CNT+1))
-	docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 "version=v$ASP_VERSION" "port=$ASP_PORT"&& print_msg "asp-test3 version $ASP_VERSION in container asp-test-cnt$ASP_CNT deploy on port $ASP_PORT: ${GREEN}OK${NC}"
+	print_msg "docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 \"version=v$ASP_VERSION\" \"port=$ASP_PORT\""
+	docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 "version=v$ASP_VERSION" "port=$ASP_PORT" && print_msg "asp-test3 version v$ASP_VERSION in container asp-test-cnt$ASP_CNT deploy on port $ASP_PORT: ${GREEN}OK${NC}"
 }
 
 
@@ -80,6 +81,7 @@ docker run -d --name node1 -h node1 progrium/consul -server -bootstrap-expect 3 
 JOIN_IP="$(docker inspect -f '{{.NetworkSettings.IPAddress}}' node1)"
 print_msg "node1 start with IP: " $JOIN_IP
 
+# parametrize number of server node
 print_msg "Starting node2"
 docker run -d --name node2 -h node2 progrium/consul -server -join $JOIN_IP && print_msg "node2 started ${GREEN}OK${NC}"
 print_msg "Starting node3"
