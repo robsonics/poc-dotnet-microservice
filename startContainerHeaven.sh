@@ -5,7 +5,9 @@ GREEN='\033[0;32m'
 NC='\033[0m' 
 
 ASP_PORT=5000
-ASP_VERSION=1
+ASP_VERSION=0
+ASP_PORT=80
+ASP_CNT=0;
 
 # $1 message to print
 function print_msg (){
@@ -28,8 +30,31 @@ function get_container_ip(){
 	docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $1
 }
 
-function publish_asp(){
+# Add consul key value
+# $1 Key
+# $2 Value
+function add_key_value(){
+	REQ="curl -s  --request PUT --data "$1" $NODE1_IP:8500/v1/kv/$2 "
 
+	print_msg "Adding KV $1=$2"
+	#print_msg "executing on node2 $REQ"
+	docker exec node2 $REQ
+}
+
+function increase_asp_version(){
+	((ASP_VERSION=ASP_VERSION+1))
+	((ASP_PORT=ASP_PORT+1))
+	add_key_value "v$ASP_VERSION_inputqueue" "v$ASP_VERSION_inputqueue"
+	add_key_value "v$ASP_VERSION_outputqueue" "v$ASP_VERSION_outputqueue"
+	print_msg "Current asp services version: v$ASP_VERSION on port $ASP_PORT"
+}
+function build_asp(){
+	dotnet restore && dotnet publish -o publish && print_msg "WebApplication1 build: ${GREEN}OK${NC}" && docker build -t asp-test3 . && print_msg "Docker image asp-test3 build: ${GREEN}OK${NC}"
+}
+
+function publish_asp(){	
+	((ASP_CNT=ASP_CNT+1))
+	docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 "version=v$ASP_VERSION" "port=$ASP_PORT"&& print_msg "asp-test3 version $ASP_VERSION in container asp-test-cnt$ASP_CNT deploy on port $ASP_PORT: ${GREEN}OK${NC}"
 }
 
 
@@ -71,12 +96,6 @@ check_pull_image rabbitmq
 print_msg "Starting rabbitmq container"
 docker run -d --hostname rabbitmq --name rabbitmq rabbitmq:3 && print_msg "rabbitmq node started ${GREEN}OK${NC}"
 
-if [ -e consul ]; then
-	echo -e "[#] consul file exist in current directory: ${GREEN}OK${NC}"
-else
-	echo -e "[#] consul file exist in current directory: ${RED}FAIL${NC}"
-fi
-
 NODE1_IP="$(get_container_ip node1)"
 RABBITMQ_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' rabbitmq)"
 
@@ -92,8 +111,11 @@ docker exec node2 curl -s $NODE1_IP:8500/v1/kv/rabbitmqip?raw
 
 print_msg "Setting up client"
 cd WebApplication1
-dotnet restore && dotnet publish -o publish && print_msg "WebApplication1 build: ${GREEN}OK${NC}" && docker build -t asp-test3 . && print_msg "Docker image asp-test3 build: ${GREEN}OK${NC}"
-docker run  -d -p 80:80 -h asp-test-cnt --name asp-test-cnt asp-test3 && print_msg "asp-test3 in container asp-test-cnt deploy: ${GREEN}OK${NC}"
+
+build_asp
+
+increase_asp_version
+publish_asp
 
 
 

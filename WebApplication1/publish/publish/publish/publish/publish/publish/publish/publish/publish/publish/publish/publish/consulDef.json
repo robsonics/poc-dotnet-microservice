@@ -1,9 +1,0 @@
-﻿{
-  "service": {
-    "name": "web",
-    "tags": [ "primary" ],
-    "address": "",
-    "port": 80,
-    "enableTagOverride": false
-  }
-}

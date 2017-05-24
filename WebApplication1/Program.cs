@@ -9,19 +9,38 @@ using Microsoft.Extensions.Configuration;
 
 namespace WebApplication1
 {
+   
     public class Program
     {
         public static void Main(string[] args)
         {
-            var config = new ConfigurationBuilder()
-                                .AddCommandLine(args)
-                                .Build();
+            foreach (var arg in args)
+            {
+                Console.WriteLine("Arg: " + arg);
+            }
+            var parsedArgs = args.Select(t => {
+                var q = t.Split('=');
+            return new KeyValuePair<string, string>(q[0],q[1]);
+            });
+            int port = 80;
+            var kv =  parsedArgs.FirstOrDefault(t => string.Equals(t.Key, "port", StringComparison.OrdinalIgnoreCase));
+            int.TryParse(kv.Value, out port);
 
+            var config = new ConfigurationBuilder()
+                                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                                    .AddEnvironmentVariables()
+                                    .AddInMemoryCollection(parsedArgs)
+                                .Build();
+            var url = "http://127.0.0.1:" + port;
+            Console.WriteLine("Setting up url for listening: " + url);
             var host = new WebHostBuilder()
-                .UseConfiguration(config)
                 .UseKestrel()
                 .UseIISIntegration()
-                .UseUrls("http://localhost:80")
+                .ConfigureServices(t => {
+                    t.Add(new Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(IConfigurationRoot), config));
+                })
+                .UseUrls(url)
+                .CaptureStartupErrors(true)
                 .UseStartup<Startup>()
                 .Build();
 

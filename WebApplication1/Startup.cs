@@ -20,16 +20,17 @@ namespace WebApplication1
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        //IHostingEnvironment env
+        public Startup(IConfigurationRoot configurationRoot)
         {
             //var builder = new ConfigurationBuilder()
             //    .SetBasePath(env.ContentRootPath)
             //    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             //    .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
             //    .AddEnvironmentVariables();
-            //Configuration = builder.Build();
 
-            //var configurationSvc = new ConfigurationReader();
+            //Configuration = builder.Build();
+            Configuration = configurationRoot;
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -43,11 +44,12 @@ namespace WebApplication1
             // Add framework services.
             services.AddMvc();
             services.AddOptions();
-            services.AddHangfire(t=> {
+            services.AddHangfire(t => {
                 t.UseMemoryStorage();
                 //t.UseActivator<IMessageClient>(new MessageClient());
 
             });
+            services.Configure<ConfigData>(Configuration);
             services.Configure<ConfigData>(config => {
                 using (var client = new ConsulClient(conf=> { conf.Address = new Uri(@"http://172.17.0.2:8500"); }))
                 {
@@ -121,23 +123,41 @@ namespace WebApplication1
             app.UseHangfireServer();
             app.UseHangfireDashboard();
             app.UseMvc();
+            var urls = string.IsNullOrEmpty(Configuration["consul-urls"])?new[] { string.Empty } : Configuration["consul-urls"].Split(';');
 
-            RegisterInConsul();
-
+            Register(new[] { @"http://172.17.0.2:8500" });
         }
 
-        private void RegisterInConsul()
-        {
-            using (var client = new ConsulClient(conf => { conf.Address = new Uri(@"http://172.17.0.2:8500"); }))// TODO should replace with array of address read from 
+        private void Register(string[] consulUrl) {
+            foreach (var url in consulUrl)
             {
-                var req = new AgentServiceRegistration() {
-                    Address ="",
-                    Name ="",
-                    Port=80,
-                    
-                };
-                client.Agent.ServiceRegister(req).GetAwaiter().GetResult();
+                if (RegisterInConsul(url))
+                    return;
             }
+        }
+
+        private bool RegisterInConsul(string url)
+        {
+            try
+            {
+
+                using (var client = new ConsulClient(conf => { conf.Address = new Uri(url); }))// TODO should replace with array of address read from 
+                {
+                    var req = new AgentServiceRegistration()
+                    {
+                        Address = "",
+                        Name = "",
+                        Port = 80,
+
+                    };
+                    client.Agent.ServiceRegister(req).GetAwaiter().GetResult();
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
