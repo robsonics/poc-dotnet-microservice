@@ -31,7 +31,7 @@ namespace WebApplication1
                                     .AddEnvironmentVariables()
                                     .AddInMemoryCollection(parsedArgs)
                                 .Build();
-            var url = "http://localhost:" + port;
+            var url = "http://127.0.0.1:" + port;
             Console.WriteLine("Setting up url for listening: " + url);
             var host = new WebHostBuilder()
                 .UseKestrel()

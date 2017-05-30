@@ -13,7 +13,7 @@ ASP_CNT=0;
 function print_msg (){
 	echo -e "[#] $1"
 }
-
+# TODO verify
 # $1 container ID/name
 function check_pull_image (){
 	if docker images | grep $1 | wc -c -gt 1; then
@@ -55,7 +55,7 @@ function build_asp(){
 function publish_asp(){	
 	((ASP_CNT=ASP_CNT+1))
 	print_msg "docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 \"version=v$ASP_VERSION\" \"port=$ASP_PORT\""
-	docker run  -d -p $ASP_PORT:$ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 "version=v$ASP_VERSION" "port=$ASP_PORT" && print_msg "asp-test3 version v$ASP_VERSION in container asp-test-cnt$ASP_CNT deploy on port $ASP_PORT: ${GREEN}OK${NC}"
+	docker run  -d -p $ASP_PORT -h asp-test-cnt$ASP_CNT  --name asp-test-cnt$ASP_CNT asp-test3 "version=v$ASP_VERSION" "port=$ASP_PORT" && print_msg "asp-test3 version v$ASP_VERSION in container asp-test-cnt$ASP_CNT deploy on port $ASP_PORT: ${GREEN}OK${NC}"
 }
 
 
