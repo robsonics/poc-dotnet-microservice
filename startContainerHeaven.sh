@@ -101,23 +101,51 @@ docker run -d --hostname rabbitmq --name rabbitmq rabbitmq:3 && print_msg "rabbi
 NODE1_IP="$(get_container_ip node1)"
 RABBITMQ_IP="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' rabbitmq)"
 
-print_msg "RabbitMq IP: $RABBITMQ_IP"
+#print_msg "RabbitMq IP: $RABBITMQ_IP"
 
-REQ="curl -s  --request PUT --data "$RABBITMQ_IP" $NODE1_IP:8500/v1/kv/rabbitmqip "
+#REQ="curl -s  --request PUT --data "$RABBITMQ_IP" $NODE1_IP:8500/v1/kv/rabbitmqip "
 
-print_msg "Adding KV rabbitmqip"
+#print_msg "Adding KV rabbitmqip"
 #print_msg "executing on node2 $REQ"
-docker exec node2 $REQ
+Edocker exec node2 $REQ
 
-docker exec node2 curl -s $NODE1_IP:8500/v1/kv/rabbitmqip?raw
+#docker exec node2 curl -s $NODE1_IP:8500/v1/kv/rabbitmqip?raw
 
-print_msg "Setting up client"
-cd WebApplication1
+print_msg "Setting up Main microservice"
+cd ConsulABTest
+rm -rf published
+pwd
+dotnet restore && dotnet build &&  dotnet publish -o published && docker build -t asp_main . && docker run -d -p 80:80 asp_main -name="m" && print_msg "Main microservice started ${GREEN}OK${NC}"
 
-build_asp
+#> /dev/null 2>&1 &
+#main_PID=$!
 
-increase_asp_version
-publish_asp
+print_msg "Setting up Satellite v1 microservice"
+cd ../Satellite
+rm -rf published
+pwd
+dotnet restore && dotnet build &&  dotnet publish -o published && docker build -t asp_satellite . && docker run -d -p 81:80 asp_satellite -name="s1" && print_msg "Satellite v1 microservice started ${GREEN}OK${NC}"
+
+#> /dev/null 2>&1 &
+#sattelitev1_PID=$!
+
+#wait $main_PID $sattelitev1_PID
+#print_msg "Satellite v1 microservice started ${GREEN}OK${NC}"
+
+
+#print_msg "Setting up Satellite v2 microservice"
+#cd ../Satellite.v2
+#dotnet restore && dotnet build &&  dotnet publish -o published && docker build -t asp_satellitev2 . && docker run -d -p 82:80 asp_satellitev2 && print_msg "Satellite v2 microservice started ${GREEN}OK${NC}"
+
+
+
+
+#cd WebApplication1
+#build_asp
+#increase_asp_version
+#publish_asp
+
+
 
 
 

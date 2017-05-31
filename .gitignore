@@ -1,5 +1,9 @@
-
-/WebApplication1/bin/*
-/WebApplication1/obj/
-/WebApplication1/publish
-
+/ConsulABTest/bin
+/ConsulABTest/obj
+/ConsulABTest/published
+/Satellite/bin
+/Satellite/obj
+/Satellite/published
+/Satellite.v2/bin
+/Satellite.v2/obj
+/Satellite.v2/published
