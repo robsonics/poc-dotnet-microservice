@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.Swagger.Model;
+using Microsoft.Extensions.PlatformAbstractions;
+using System.IO;
 
 namespace Root.Versioning
 {
@@ -29,6 +32,16 @@ namespace Root.Versioning
         {
             // Add framework services.
             services.AddMvc();
+
+            services.AddSwaggerGen(con =>
+            {
+                con.SingleApiVersion(new Info() { Title = "Rooting.Versioning API" });
+
+                var basePath = PlatformServices.Default.Application.ApplicationBasePath;
+                var xmlPath = Path.Combine(basePath, "RootVersioning.xml");
+                con.IncludeXmlComments(xmlPath);
+            });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,8 +49,18 @@ namespace Root.Versioning
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-
+            app.UseStaticFiles();
+            app.UseMvcWithDefaultRoute();
             app.UseMvc();
+            app.UseSwaggerUi("swagger/ui","swagger/v1/swagger.json");
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            //else
+            //{
+            //    app.UseExceptionHandler("/error");
+            //}
         }
     }
 }
